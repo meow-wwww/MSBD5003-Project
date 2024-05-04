@@ -220,10 +220,12 @@ def merge_sets_new(list1, list2):
     return merged_sets
 
 
-merged_set_list = set_list.mapValues(remove_noise_label_from_list)\
-    .mapValues(lambda x: [set(x)])\
-    .values().treeReduce(lambda x, y: merge_sets_new(x, y))
-
+if set_list.count() != 0:
+    merged_set_list = set_list.mapValues(remove_noise_label_from_list)\
+        .mapValues(lambda x: [set(x)])\
+        .values().treeReduce(lambda x, y: merge_sets_new(x, y))
+else: # no intersecting sets
+    merged_set_list = []
 
 print('after merging intersecting sets, time used:', time.time()-start_time, file=f)
 
