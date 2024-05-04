@@ -24,7 +24,7 @@ sc = spark.sparkContext
 IDENTIFIER = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
 f = open(f'./exp_logs/{IDENTIFIER}.txt', 'w')
 
-FILE_PATH = "/Users/apple/spark/data/project/A-sets/a3.txt"
+FILE_PATH = "hdfs://vm1:9000/user/azureuser/dataset/birch/birch3.txt"
 print('FILE_PATH:', FILE_PATH, file=f)
 
 MIN_PTS = 4
@@ -220,7 +220,7 @@ def merge_sets_new(list1, list2):
     return merged_sets
 
 
-if set_list.count() != 0:
+if not set_list.isEmpty():
     merged_set_list = set_list.mapValues(remove_noise_label_from_list)\
         .mapValues(lambda x: [set(x)])\
         .values().treeReduce(lambda x, y: merge_sets_new(x, y))
