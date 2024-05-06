@@ -1,10 +1,10 @@
 import numpy as np
 import pandas as pd
-import time
+import time, datetime
 from pyspark.sql import *
 from pyspark.sql.types import *
 from sklearn.neighbors import KDTree
-from pyspark.sql.functions import array, sqrt, pow, col
+from pyspark.sql.functions import array, sqrt, pow, col, split, trim
 from pyspark.sql import types as T
 from pyspark.sql import functions as F
 
@@ -19,15 +19,18 @@ sc = spark.sparkContext
 IDENTIFIER = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
 
 
-f = open(f'./exp_logs/{IDENTIFIER}.txt', 'w')
+f = open(f'./exp_logs_sql/{IDENTIFIER}.txt', 'w')
 
 FILE_PATH = "hdfs://vm1:9000/user/azureuser/dataset/birch/birch3.txt"
 print('FILE_PATH:', FILE_PATH, file=f)
 
-a1 = pd.read_csv(FILE_PATH, delimiter=r'\s+', header=None, names=["X", "Y"])
+# a1 = pd.read_csv(FILE_PATH, delimiter=r'\s+', header=None, names=["X", "Y"])
+dataset = spark.read.text(FILE_PATH)
+dataset = dataset.select(split(trim(dataset.value), '\\s+').alias('coor'))
+df = dataset.select([col('coor')[0].cast('int').alias('x'), col('coor')[1].cast('int').alias('y')])
 
 # spark dataframe
-df = spark.createDataFrame(a1)
+# df = spark.createDataFrame(a1)
 
 start_time = time.time()
 
@@ -57,7 +60,7 @@ partition_num = 10
 df_repar = dfinput.repartition(partition_num)
 
 #broadcast to different partitions
-eps = 1000
+eps = 4000
 min_samples = 20
 
 for i in range(0,partition_num):

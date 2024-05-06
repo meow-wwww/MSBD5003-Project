@@ -24,14 +24,16 @@ sc = spark.sparkContext
 IDENTIFIER = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
 f = open(f'./exp_logs/{IDENTIFIER}.txt', 'w')
 
-FILE_PATH = "hdfs://vm1:9000/user/azureuser/dataset/birch/birch3.txt"
+FILE_PATH = "hdfs://vm1:9000/user/azureuser/dataset/A-sets/a3.txt"
 print('FILE_PATH:', FILE_PATH, file=f)
 
 MIN_PTS = 4
-EPSILON = 900
+EPSILON = 600
 X_UNIT, Y_UNIT = 5000, 5000
 SPAN_MARGIN = EPSILON/2 + 1
 NOISE_LABEL = -2
+
+print(f'MIN_PTS: {MIN_PTS}\nEPSILON: {EPSILON}\nX_UNIT: {X_UNIT}\nY_UNIT: {Y_UNIT}\nSPAN_MARGIN: {SPAN_MARGIN}\nNOISE_LABEL: {NOISE_LABEL}', file=f)
 # DATA_NUM = 800
 
 # %%
@@ -212,11 +214,41 @@ def merge_intersecting_sets(set_list):
                 new_merged_set = merged_sets.pop(merged)
                 set_list.append(new_merged_set)  # 将更新后的集合重新加入检查
         return merged_sets
+    
+    
+def merge_two_distinct_set_list(set_list1, set_list2):
+    # print('Using function [merge_two_distinct_set_list] (specially optimized for two non-overlapping sets)')
+    merged_sets = []
+    def search_and_merge(current_set, to_search_list, next_list):
+        # print(f'in search_and_merge: current_set={current_set}, to_search_list={to_search_list}, next_list={next_list}')
+        to_append_list = []
+        while to_search_list:
+            candidate_set = to_search_list.pop(0)
+            if candidate_set & current_set:
+                # print(f'find intersection: candidate_set={candidate_set}, current_set={current_set}')
+                candidate_set_searched_version = search_and_merge(candidate_set, next_list, to_search_list)
+                # print(f'candidate_set_searched_version={candidate_set_searched_version}')
+                current_set.update(candidate_set_searched_version)
+                # print(f'current_set={current_set}')
+            else:
+                to_append_list.append(candidate_set)
+        to_search_list += to_append_list
+        return current_set
+    
+    while set_list1:
+        current_set = set_list1.pop(0)
+        merged_set = search_and_merge(current_set, set_list2, set_list1)
+        merged_sets.append(merged_set)
+    if set_list2:
+        merged_sets += set_list2
+    return merged_sets
+
 
 def merge_sets_new(list1, list2):
     # 将两个列表合并为一个列表
-    combined = list1 + list2
-    merged_sets = merge_intersecting_sets(combined)
+    # combined = list1 + list2
+    # merged_sets = merge_intersecting_sets(combined)
+    merged_sets = merge_two_distinct_set_list(list1, list2)
     return merged_sets
 
 
