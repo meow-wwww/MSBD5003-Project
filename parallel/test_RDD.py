@@ -24,12 +24,12 @@ sc = spark.sparkContext
 IDENTIFIER = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
 f = open(f'./exp_logs/{IDENTIFIER}.txt', 'w')
 
-FILE_PATH = "hdfs://vm1:9000/user/azureuser/dataset/A-sets/a3.txt"
+FILE_PATH = "hdfs://vm1:9000/user/azureuser/dataset/birch/birch3.txt"#A-sets/a3.txt"
 print('FILE_PATH:', FILE_PATH, file=f)
 
 MIN_PTS = 4
-EPSILON = 600
-X_UNIT, Y_UNIT = 5000, 5000
+EPSILON = 4000
+X_UNIT, Y_UNIT = 20000, 20000
 SPAN_MARGIN = EPSILON/2 + 1
 NOISE_LABEL = -2
 
